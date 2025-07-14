@@ -19,10 +19,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: any) {
+        // Support both 'sub' and 'userId' for compatibility
+        const userId = payload.sub || payload.userId;
         return {
-            userId: payload.sub,
+            userId: userId,
             email: payload.email,
-            id: payload.sub,
+            id: userId,
         };
     }
 }
