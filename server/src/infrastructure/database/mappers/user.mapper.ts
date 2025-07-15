@@ -9,7 +9,6 @@ export class UserMapper {
             doc.password,
             doc.firstName,
             doc.lastName,
-            '', // channel
             doc.createdAt,
             doc.updatedAt
         );

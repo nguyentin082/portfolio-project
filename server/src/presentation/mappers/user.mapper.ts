@@ -7,7 +7,6 @@ export class UserPresentationMapper {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            channel: user.channel ?? '',
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         };
