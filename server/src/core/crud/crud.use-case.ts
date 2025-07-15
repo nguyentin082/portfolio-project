@@ -159,6 +159,10 @@ export class CrudUseCase {
         if (transform) {
             body = transform(body);
         }
+
+        // Automatically update the updatedAt field
+        body.updatedAt = new Date();
+
         const data = await this.model.findOneAndUpdate({ _id: id }, body, {
             new: true,
             upsert: false,
