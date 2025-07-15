@@ -9,7 +9,6 @@ import {
     Post,
     Put,
     Query,
-    Req,
     UseGuards,
 } from '@nestjs/common';
 
@@ -31,6 +30,7 @@ import {
 import { ImagesCrudUseCase } from 'src/application/use-cases/images/images-crud.use-case';
 import { ICrudQuery } from 'src/core/crud/crud-query.decorator';
 import { JwtAuthGuard } from 'src/presentation/guards/jwt-auth.guard';
+import { User } from 'src/presentation/decorators/user.decorator';
 
 @ApiTags('Images')
 @UseGuards(JwtAuthGuard)
@@ -42,8 +42,8 @@ export class ImagesController {
     // Endpoint to get API config
     @Get('config')
     @ApiOperation({ summary: 'API Config', operationId: 'config' })
-    async config(@Req() req) {
-        return this.crud.config(req);
+    async config(@User() user: any) {
+        return this.crud.config({ user });
     }
 
     // Endpoint to get all images
@@ -79,8 +79,15 @@ export class ImagesController {
     // Endpoint to create a new image record
     @Post()
     @ApiOperation({ summary: 'Create a image' })
-    async create(@Body() body: CreateImagesDto) {
-        return this.crud.create({ ...body });
+    async create(@Body() body: CreateImagesDto, @User('id') userId: string) {
+        // Ensure faces array is properly handled
+        const imageData = {
+            ...body,
+            userId,
+            faces: body.faces || [], // Default to empty array if not provided
+        };
+        
+        return this.crud.create(imageData);
     }
 
     // Endpoint to update an existing image record

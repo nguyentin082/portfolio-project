@@ -1,16 +1,54 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+    IsEnum,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    IsArray,
+    ValidateNested,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+
+export class FaceDto {
+    @ApiProperty({
+        description: 'Vector ID in Milvus database',
+        example: 'vector_123',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    milvusId?: string;
+
+    @ApiProperty({
+        description: 'Bounding box coordinates [x, y, width, height]',
+        type: [Number],
+        example: [100, 100, 50, 50],
+        required: false,
+    })
+    @IsOptional()
+    @IsArray()
+    bbox?: number[];
+
+    @ApiProperty({
+        description: 'Person ID',
+        example: 'person_123',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    personId?: string;
+
+    @ApiProperty({
+        description: 'Name of the person',
+        example: 'John Doe',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    personName?: string;
+}
 
 export class UpdateImagesDto {
-    @ApiProperty({
-        description: 'User ID associated with the document',
-        required: false,
-        default: 'testUserId',
-    })
-    @IsString()
-    @IsOptional()
-    userId?: string;
-
     @ApiProperty({
         description: 'File key used to identify the document in storage',
         required: false,
@@ -21,24 +59,19 @@ export class UpdateImagesDto {
     fileKey?: string;
 
     @ApiProperty({
-        description: 'Name of the document',
+        description: 'Faces detected in the image',
+        type: [FaceDto],
         required: false,
-        default: 'testName',
+        default: [],
     })
-    @IsString()
     @IsOptional()
-    name?: string;
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => FaceDto)
+    faces?: FaceDto[];
 }
 
 export class CreateImagesDto {
-    @ApiProperty({
-        description: 'User ID associated with the document',
-        example: 'testUserId',
-    })
-    @IsNotEmpty()
-    @IsString()
-    userId: string;
-
     @ApiProperty({
         description: 'File key used to identify the document in storage',
         example: 'testFileKey',
@@ -57,17 +90,15 @@ export class CreateImagesDto {
 
     @ApiProperty({
         description: 'Faces detected in the image',
-        type: [Object],
+        type: [FaceDto],
         required: false,
         default: [],
     })
     @IsOptional()
-    faces?: {
-        bbox: number[];
-        name: string;
-        vectorId: string;
-        personId: string;
-    }[];
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => FaceDto)
+    faces?: FaceDto[];
 
     createdAt: Date;
     updatedAt: Date;

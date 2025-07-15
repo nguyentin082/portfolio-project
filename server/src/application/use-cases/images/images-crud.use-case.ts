@@ -22,15 +22,6 @@ export class ImagesCrudUseCase extends CrudUseCase {
         });
     }
 
-    private validateObjectId(id: string): void {
-        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-            throw new HttpException(
-                'Invalid ObjectId format',
-                HttpStatus.BAD_REQUEST
-            );
-        }
-    }
-
     private handleCrudError(error: any): never {
         if (error.name === 'CastError' || error.kind === 'ObjectId') {
             throw new HttpException(
@@ -52,7 +43,6 @@ export class ImagesCrudUseCase extends CrudUseCase {
 
     async findOne(id: string, query: ICrudQuery = {}) {
         try {
-            this.validateObjectId(id);
             return await super.findOne(id, query);
         } catch (error) {
             this.handleCrudError(error);
@@ -61,7 +51,6 @@ export class ImagesCrudUseCase extends CrudUseCase {
 
     async update(id: string, body: any) {
         try {
-            this.validateObjectId(id);
             return await super.update(id, body);
         } catch (error) {
             this.handleCrudError(error);
@@ -70,7 +59,6 @@ export class ImagesCrudUseCase extends CrudUseCase {
 
     async delete(id: string) {
         try {
-            this.validateObjectId(id);
             return await super.delete(id);
         } catch (error) {
             this.handleCrudError(error);

@@ -1,13 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { BaseSchema } from './base.schema';
 import { HydratedDocument } from 'mongoose';
+import { FacesItem } from 'src/core/entities/images.entity';
 
 // Define the face schema inline
 const FaceSchema = {
-    bbox: { type: [Number], required: true },
-    name: { type: String, required: true },
-    vectorId: { type: String, required: true },
-    personId: { type: String, required: true },
+    milvusId: { type: String, required: false, default: '' },
+    bbox: { type: [Number], required: false },
+    personId: { type: String, required: false, default: '' },
+    personName: { type: String, required: false, default: '' },
 };
 
 @Schema({
@@ -25,7 +26,7 @@ export class Images extends BaseSchema {
     playgroundId: string;
 
     @Prop({ type: [FaceSchema], default: [] })
-    faces: any[];
+    faces: FacesItem[];
 
     @Prop({ required: true, default: Date.now })
     createdAt: Date;

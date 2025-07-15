@@ -1,8 +1,8 @@
 export class FacesItem {
+    milvusId: string;
     bbox: number[];
-    name: string;
-    vectorId: string;
     personId: string;
+    personName: string;
 }
 
 export class Images {

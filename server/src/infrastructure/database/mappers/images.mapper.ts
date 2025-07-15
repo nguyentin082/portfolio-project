@@ -22,10 +22,10 @@ export class ImagesMapper {
             ? doc.faces.map((face) => {
                   // Since MongoDB stores faces as objects directly, just ensure proper structure
                   return {
+                      milvusId: face.milvusId || '',
                       bbox: face.bbox || [],
-                      name: face.name || '',
-                      vectorId: face.vectorId || '',
                       personId: face.personId || '',
+                      personName: face.personName || '',
                   } as FacesItem;
               })
             : [];
