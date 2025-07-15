@@ -1,36 +1,66 @@
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
-async function testConnection() {
+async function testMongo() {
+    console.log('🗄️  MongoDB Connection Test\n');
+
     const uri = process.env.MONGODB_KEY;
-    console.log('Testing MongoDB connection...');
-    console.log('URI:', uri ? uri.replace(/:[^:]*@/, ':****@') : 'undefined');
-    
     if (!uri) {
-        console.error('MONGODB_KEY not found in environment variables');
-        return;
+        console.error('❌ MONGODB_KEY not found');
+        process.exit(1);
     }
 
     const client = new MongoClient(uri);
-    
+    const tests = [];
+
     try {
+        // Connection
         await client.connect();
-        console.log('✅ MongoDB connection successful!');
-        
-        // Test if we can list databases
-        const databases = await client.db().admin().listDatabases();
-        console.log('Available databases:', databases.databases.map(db => db.name));
-        
-        // Test if we can access the main database
+        tests.push({
+            name: 'Connection',
+            status: '✅',
+            detail: 'Connected to Atlas',
+        });
+
+        // Database access
         const db = client.db('main');
         const collections = await db.listCollections().toArray();
-        console.log('Collections in main database:', collections.map(col => col.name));
-        
+        tests.push({
+            name: 'Database Access',
+            status: '✅',
+            detail: `${collections.length} collections`,
+        });
+
+        // Check users collection
+        const usersCollection = db.collection('users');
+        const userCount = await usersCollection.countDocuments();
+        tests.push({
+            name: 'Users Collection',
+            status: '✅',
+            detail: `${userCount} users`,
+        });
     } catch (error) {
-        console.error('❌ MongoDB connection failed:', error.message);
+        tests.push({
+            name: 'MongoDB Test',
+            status: '❌',
+            detail: error.message,
+        });
     } finally {
         await client.close();
     }
+
+    // Results
+    tests.forEach((test) => {
+        console.log(`${test.status} ${test.name}: ${test.detail}`);
+    });
+
+    const failed = tests.filter((t) => t.status === '❌').length;
+    console.log(`\n📊 Result: ${tests.length - failed}/${tests.length} passed`);
+
+    if (failed > 0) process.exit(1);
 }
 
-testConnection();
+testMongo().catch((error) => {
+    console.error('💥 Test failed:', error.message);
+    process.exit(1);
+});
