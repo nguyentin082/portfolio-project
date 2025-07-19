@@ -8,7 +8,6 @@ const FaceSchema = {
     milvusId: { type: String, required: false, default: '' },
     bbox: { type: [Number], required: false },
     personId: { type: String, required: false, default: '' },
-    personName: { type: String, required: false, default: '' },
 };
 
 @Schema({

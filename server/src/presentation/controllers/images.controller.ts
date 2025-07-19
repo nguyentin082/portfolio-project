@@ -25,6 +25,7 @@ import {
 import {
     CreateImagesDto,
     UpdateImagesDto,
+    UpdateFaceDto,
 } from 'src/presentation/dtos/images-request.dto';
 
 import { ImagesCrudUseCase } from 'src/application/use-cases/images/images-crud.use-case';
@@ -86,7 +87,7 @@ export class ImagesController {
             userId,
             faces: body.faces || [], // Default to empty array if not provided
         };
-        
+
         return this.crud.create(imageData);
     }
 
@@ -114,5 +115,80 @@ export class ImagesController {
     @ApiOperation({ summary: 'Delete a image record' })
     async delete(@Param('id') id: string) {
         return await this.crud.delete(id);
+    }
+
+    // {
+    //   "userId": "123",
+    //   "fileKey": "testfilekey",
+    //   "playgroundId": "testid",
+    //   "faces": [
+    //     {
+    //       "milvusId": "123",
+    //       "bbox": [
+    //         111,
+    //         456,
+    //         789,
+    //         123
+    //       ],
+    //       "personId": "testid",
+    //       "_id": {
+    //         "$oid": "68765ffb64791db4450c64f8"
+    //       }
+    //     }
+    //   ],
+    //   "createdAt": {
+    //     "$date": "2025-07-15T07:01:28.082Z"
+    //   },
+    //   "updatedAt": {
+    //     "$date": "2025-07-15T14:14:57.801Z"
+    //   }
+    // }
+    // Endpoint to update info of specific face in the image following mongodb _id and milvusId
+    @Put(':id/faces/:milvusId')
+    @ApiParam({
+        name: 'id',
+        description: 'Image ID',
+        required: true,
+        example: '682924b6b623d6b8aca19a4d',
+    })
+    @ApiParam({
+        name: 'milvusId',
+        description: 'Milvus ID of the face to update',
+        required: true,
+        example: 'c0a999e3-cda3-428c-b57e-aa6bd5883b5b',
+    })
+    @ApiOperation({
+        summary: 'Update specific face in the image',
+        description:
+            'Update information of a specific face in the image using its Milvus ID',
+    })
+    @ApiBody({
+        type: UpdateFaceDto,
+        description: 'Face update data - only core fields',
+        examples: {
+            updatePersonInfo: {
+                summary: 'Update person identity',
+                value: {
+                    personId: 'person_trump_001',
+                },
+            },
+            updateBoundingBox: {
+                summary: 'Update bounding box coordinates',
+                value: {
+                    bbox: [722.35, 260.24, 1260.34, 940.3],
+                },
+            },
+        },
+    })
+    async updateFace(
+        @Param('id') id: string,
+        @Param('milvusId') milvusId: string,
+        @Body() body: UpdateFaceDto
+    ) {
+        const result = await this.crud.updateFace(id, milvusId, body);
+        if (!result) {
+            throw new HttpException('Face not found', HttpStatus.NOT_FOUND);
+        }
+        return result;
     }
 }

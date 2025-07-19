@@ -25,7 +25,6 @@ export class ImagesMapper {
                       milvusId: face.milvusId || '',
                       bbox: face.bbox || [],
                       personId: face.personId || '',
-                      personName: face.personName || '',
                   } as FacesItem;
               })
             : [];

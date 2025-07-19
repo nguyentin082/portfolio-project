@@ -2,7 +2,6 @@ export class FacesItem {
     milvusId: string;
     bbox: number[];
     personId: string;
-    personName: string;
 }
 
 export class Images {

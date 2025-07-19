@@ -11,8 +11,8 @@ import { Type } from 'class-transformer';
 
 export class FaceDto {
     @ApiProperty({
-        description: 'Vector ID in Milvus database',
-        example: 'vector_123',
+        description: 'Milvus ID - unique identifier for face embedding',
+        example: 'c0a999e3-cda3-428c-b57e-aa6bd5883b5b',
         required: false,
     })
     @IsOptional()
@@ -20,9 +20,9 @@ export class FaceDto {
     milvusId?: string;
 
     @ApiProperty({
-        description: 'Bounding box coordinates [x, y, width, height]',
+        description: 'Bounding box coordinates [x1, y1, x2, y2]',
         type: [Number],
-        example: [100, 100, 50, 50],
+        example: [722.35, 260.24, 1260.34, 940.3],
         required: false,
     })
     @IsOptional()
@@ -37,15 +37,36 @@ export class FaceDto {
     @IsOptional()
     @IsString()
     personId?: string;
+}
 
+export class UpdateFaceDto {
     @ApiProperty({
-        description: 'Name of the person',
-        example: 'John Doe',
+        description: 'Person ID',
+        example: 'person_123',
         required: false,
     })
     @IsOptional()
     @IsString()
-    personName?: string;
+    personId?: string;
+
+    @ApiProperty({
+        description: 'Bounding box coordinates [x1, y1, x2, y2]',
+        type: [Number],
+        example: [722.35, 260.24, 1260.34, 940.3],
+        required: false,
+    })
+    @IsOptional()
+    @IsArray()
+    bbox?: number[];
+
+    @ApiProperty({
+        description: 'Milvus ID for face embedding',
+        example: 'c0a999e3-cda3-428c-b57e-aa6bd5883b5b',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    milvusId?: string;
 }
 
 export class UpdateImagesDto {
