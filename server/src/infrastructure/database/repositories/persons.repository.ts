@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PersonsRepository } from 'src/core/repositories/persons';
+import { PersonsRepository } from 'src/core/repositories/persons.repository';
 import { Persons } from 'src/core/entities/persons.entity';
-import { PersonsDocument } from '../entities/persons';
+import { PersonsDocument } from '../entities/persons.schema';
 import { PersonsMapper } from '../mappers/persons.mapper';
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { CrudUseCase } from 'src/core/crud/crud.use-case';
 import { Persons } from 'src/core/entities/persons.entity';
-import { PersonsRepository } from 'src/core/repositories/persons';
+import { PersonsRepository } from 'src/core/repositories/persons.repository';
 import { PersonsMapper } from 'src/infrastructure/database/mappers/persons.mapper';
 import { ICrudQuery } from 'src/core/crud/crud-query.decorator';
 

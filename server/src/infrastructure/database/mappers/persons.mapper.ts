@@ -1,5 +1,5 @@
 import { Persons } from 'src/core/entities/persons.entity';
-import { PersonsDocument } from 'src/infrastructure/database/entities/persons';
+import { PersonsDocument } from 'src/infrastructure/database/entities/persons.schema';
 
 export class PersonsMapper {
     static toDomain(doc: PersonsDocument): Persons | null {
