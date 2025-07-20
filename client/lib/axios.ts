@@ -3,14 +3,14 @@ import type { AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import axios from 'axios';
 import https from 'https';
 import Cookies from 'js-cookie';
+import { NEST_SERVER_API_URL } from '@/core/config';
 
 type AdaptAxiosRequestConfig = {
     headers: AxiosRequestHeaders;
 } & AxiosRequestConfig;
 
 const instance = axios.create({
-    baseURL:
-        process.env.NEXT_PUBLIC_NEST_SERVER_API_URL || 'http://localhost:3000',
+    baseURL: NEST_SERVER_API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
