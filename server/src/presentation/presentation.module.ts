@@ -10,12 +10,15 @@ import { UserModule } from 'src/application/use-cases/user/user.module';
 import { ImagesModule } from 'src/application/use-cases/images/images.module';
 import { UploadModule } from 'src/application/use-cases/upload/upload.module';
 import { PersonsModule } from 'src/application/use-cases/persons/persons.module';
+import { PlaygroundsModule } from 'src/application/use-cases/playgrounds/playgrounds.module';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthPresentationMapper } from './mappers/auth.mapper';
 import { UserMapper } from 'src/infrastructure/database/mappers/user.mapper';
 import { ImagesMapper } from 'src/presentation/mappers/images.mapper';
 import { PersonsMapper } from 'src/infrastructure/database/mappers/persons.mapper';
+import { PlaygroundsController } from 'src/presentation/controllers/playgrounds.controller';
+import { PlaygroundsMapper } from 'src/infrastructure/database/mappers/playgrounds.mapper';
 
 @Module({
     imports: [
@@ -23,6 +26,7 @@ import { PersonsMapper } from 'src/infrastructure/database/mappers/persons.mappe
         ImagesModule,
         UploadModule,
         PersonsModule,
+        PlaygroundsModule,
         ConfigModule,
     ],
     controllers: [
@@ -31,13 +35,21 @@ import { PersonsMapper } from 'src/infrastructure/database/mappers/persons.mappe
         ImagesController,
         UploadController,
         PersonsController,
+        PlaygroundsController,
     ],
     providers: [
         AuthPresentationMapper,
         UserMapper,
         ImagesMapper,
         PersonsMapper,
+        PlaygroundsMapper,
     ],
-    exports: [AuthPresentationMapper, UserMapper, ImagesMapper, PersonsMapper],
+    exports: [
+        AuthPresentationMapper,
+        UserMapper,
+        ImagesMapper,
+        PersonsMapper,
+        PlaygroundsMapper,
+    ],
 })
 export class PresentationModule {}
