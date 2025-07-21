@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
 from typing import List
 import time
-from services.mongo_service import get_image_data
+from services.mongo_service import get_image_data, update_image_status
+from enums.images_enum import ImageStatusEnum
 from integrates.supabase import download_file
 from services.face_service import (
     face_detection_service,
@@ -25,6 +26,9 @@ async def detect_faces(request: FaceDetectionRequest):
         # Download the image file from Supabase
         result = await download_file(file_key=data["file_key"])
         if not result["success"]:
+            await update_image_status(
+                id=request.image_id, status=ImageStatusEnum.FAILED
+            )
             raise HTTPException(status_code=404, detail=result["error"])
         # Perform face detection
         faces = await face_detection_service(local_path=result["local_path"])
@@ -47,11 +51,39 @@ async def detect_faces(request: FaceDetectionRequest):
                     },
                 )
         execution_time = round(time.time() - start_time, 4)
+        # Update status and execution_time in MongoDB
+        await update_image_status(
+            id=request.image_id,
+            status=ImageStatusEnum.DETECTED,
+            execution_time=execution_time,
+        )
         return JSONResponse(
             status_code=200,
             content={"success": True, "faces": faces, "execution_time": execution_time},
         )
     except HTTPException as http_exc:
-        raise http_exc
+        await update_image_status(id=request.image_id, status=ImageStatusEnum.FAILED)
+        return JSONResponse(
+            status_code=(
+                http_exc.status_code if hasattr(http_exc, "status_code") else 500
+            ),
+            content={
+                "success": False,
+                "status": str(ImageStatusEnum.FAILED),
+                "error": (
+                    str(http_exc.detail)
+                    if hasattr(http_exc, "detail")
+                    else str(http_exc)
+                ),
+            },
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Face detection failed: {str(e)}")
+        await update_image_status(id=request.image_id, status=ImageStatusEnum.FAILED)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "status": str(ImageStatusEnum.FAILED),
+                "error": f"Face detection failed: {str(e)}",
+            },
+        )

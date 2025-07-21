@@ -82,6 +82,40 @@ async def update_image_faces(id: str, milvus_id: str, face_data: dict):
         raise HTTPException(status_code=500, detail=f"Database update error: {str(e)}")
 
 
+async def update_image_status(id: str, status: str, execution_time: float = None):
+    try:
+        # Get MongoDB client
+        client = get_client()
+
+        # Validate ObjectId format
+        if not ObjectId.is_valid(id):
+            raise HTTPException(status_code=400, detail="Invalid image ID format")
+
+        # Prepare update data
+        update_data = {"status": status, "updatedAt": datetime.utcnow()}
+        if execution_time is not None:
+            update_data["executionTime"] = execution_time
+
+        # Update image status
+        result = client.update_one(
+            COLLECTION_NAME,
+            {"_id": ObjectId(id)},
+            {"$set": update_data},
+        )
+
+        if result.modified_count == 0:
+            raise HTTPException(
+                status_code=404, detail="Image not found or status unchanged"
+            )
+
+        return {"success": True, "modified_count": result.modified_count}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database update error: {str(e)}")
+
+
 def update_face_by_milvus_id(
     existing_faces: list, milvus_id: str, face_data: dict
 ) -> list:
