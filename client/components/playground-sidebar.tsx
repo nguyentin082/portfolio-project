@@ -98,6 +98,46 @@ const domains = [
 ];
 
 export function PlaygroundSidebar() {
+    // Get current session from URL
+    const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+        null
+    );
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const handleRouteChange = () => {
+                const params = new URLSearchParams(window.location.search);
+                setSelectedSessionId(params.get('session'));
+            };
+            handleRouteChange();
+            window.addEventListener('popstate', handleRouteChange);
+            // Next.js router events
+            const nextRouterEvents = [
+                'next-router-event', // custom event for fallback
+            ];
+            nextRouterEvents.forEach((evt) => {
+                window.addEventListener(evt, handleRouteChange);
+            });
+            // Listen to pushState and replaceState via monkey patch
+            const rawPushState = window.history.pushState;
+            const rawReplaceState = window.history.replaceState;
+            window.history.pushState = function (...args) {
+                rawPushState.apply(this, args);
+                window.dispatchEvent(new Event('next-router-event'));
+            };
+            window.history.replaceState = function (...args) {
+                rawReplaceState.apply(this, args);
+                window.dispatchEvent(new Event('next-router-event'));
+            };
+            return () => {
+                window.removeEventListener('popstate', handleRouteChange);
+                nextRouterEvents.forEach((evt) => {
+                    window.removeEventListener(evt, handleRouteChange);
+                });
+                window.history.pushState = rawPushState;
+                window.history.replaceState = rawReplaceState;
+            };
+        }
+    }, []);
     const { theme, setTheme } = useTheme();
     const { user, signOut } = useAuth();
     const router = useRouter();
@@ -119,7 +159,9 @@ export function PlaygroundSidebar() {
         data: playgroundsData,
         isLoading: playgroundsLoading,
         refetch: refetchPlaygrounds,
-    } = usePlaygrounds();
+    } = usePlaygrounds({
+        sort: { createdAt: -1 }, // newest first
+    });
     const createPlaygroundMutation = useCreatePlayground();
     const updatePlaygroundMutation = useUpdatePlayground();
     const deletePlaygroundMutation = useDeletePlayground();
@@ -457,7 +499,8 @@ export function PlaygroundSidebar() {
                                                               </TooltipTrigger>
                                                               <TooltipContent side="right">
                                                                   <div>
-                                                                      <p className="font-medium">
+                                                                      {/* smaller text size */}
+                                                                      <p className="font-medium text-sm">
                                                                           {
                                                                               session.title
                                                                           }
@@ -471,10 +514,29 @@ export function PlaygroundSidebar() {
                                                               </TooltipContent>
                                                           </Tooltip>
                                                       ) : (
-                                                          <div className="group flex items-center gap-2 w-full">
+                                                          <Link
+                                                              href={`/playground?session=${session.id}`}
+                                                              className={`group flex flex-row gap-3 items-center w-full px-2 py-3 rounded-lg transition-all min-w-0
+                                                                  bg-muted/40 hover:bg-muted/60
+                                                                  ${
+                                                                      selectedSessionId ===
+                                                                      session.id
+                                                                          ? 'bg-primary/10 shadow-sm'
+                                                                          : ''
+                                                                  }`}
+                                                              style={
+                                                                  selectedSessionId ===
+                                                                  session.id
+                                                                      ? {
+                                                                            boxShadow:
+                                                                                'inset 0 0 0 2px #22c55e',
+                                                                        }
+                                                                      : {}
+                                                              }
+                                                          >
                                                               {editingId ===
                                                               session.id ? (
-                                                                  <div className="flex-1 flex gap-1">
+                                                                  <div className="flex flex-col gap-2 w-full">
                                                                       <Input
                                                                           value={
                                                                               editTitle
@@ -504,84 +566,109 @@ export function PlaygroundSidebar() {
                                                                               )
                                                                                   cancelEdit();
                                                                           }}
-                                                                          className="h-8 text-sm"
+                                                                          className="h-9 text-base font-medium"
                                                                           autoFocus
+                                                                          style={{
+                                                                              minWidth: 0,
+                                                                          }}
                                                                       />
-                                                                      <Button
-                                                                          size="sm"
-                                                                          variant="ghost"
-                                                                          onClick={() =>
-                                                                              saveEdit(
-                                                                                  session.id
-                                                                              )
-                                                                          }
-                                                                          disabled={
-                                                                              updatePlaygroundMutation.isPending
-                                                                          }
-                                                                          className="h-8 w-8 p-0"
-                                                                      >
-                                                                          {updatePlaygroundMutation.isPending ? (
-                                                                              <Loader2 className="h-3 w-3 animate-spin" />
-                                                                          ) : (
-                                                                              '✓'
-                                                                          )}
-                                                                      </Button>
-                                                                  </div>
-                                                              ) : (
-                                                                  <>
-                                                                      <SidebarMenuButton
-                                                                          asChild
-                                                                          className={
-                                                                              isCollapsed
-                                                                                  ? 'w-8 h-8 p-0 mx-auto'
-                                                                                  : 'flex-1'
-                                                                          }
-                                                                      >
-                                                                          <Link
-                                                                              href={`/playground?session=${session.id}`}
-                                                                          >
-                                                                              <DomainIcon className="h-4 w-4" />
-                                                                              {!isCollapsed && (
-                                                                                  <div className="flex-1 min-w-0">
-                                                                                      <div className="truncate text-sm">
-                                                                                          {
-                                                                                              session.title
-                                                                                          }
-                                                                                      </div>
-                                                                                      <div className="text-xs text-muted-foreground">
-                                                                                          {formatDate(
-                                                                                              session.lastUsed
-                                                                                          )}
-                                                                                      </div>
-                                                                                  </div>
-                                                                              )}
-                                                                          </Link>
-                                                                      </SidebarMenuButton>
-                                                                      <div className="opacity-0 group-hover:opacity-100 flex gap-1">
+                                                                      <div className="flex gap-2 justify-end">
                                                                           <Button
                                                                               size="sm"
                                                                               variant="ghost"
-                                                                              onClick={() =>
+                                                                              onClick={(
+                                                                                  e
+                                                                              ) => {
+                                                                                  e.preventDefault();
+                                                                                  saveEdit(
+                                                                                      session.id
+                                                                                  );
+                                                                              }}
+                                                                              disabled={
+                                                                                  updatePlaygroundMutation.isPending
+                                                                              }
+                                                                              className="h-8 w-8 p-0"
+                                                                          >
+                                                                              {updatePlaygroundMutation.isPending ? (
+                                                                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                                                              ) : (
+                                                                                  '✓'
+                                                                              )}
+                                                                          </Button>
+                                                                          <Button
+                                                                              size="sm"
+                                                                              variant="ghost"
+                                                                              onClick={(
+                                                                                  e
+                                                                              ) => {
+                                                                                  e.preventDefault();
+                                                                                  cancelEdit();
+                                                                              }}
+                                                                              className="h-8 w-8 p-0"
+                                                                          >
+                                                                              ✕
+                                                                          </Button>
+                                                                      </div>
+                                                                  </div>
+                                                              ) : (
+                                                                  <>
+                                                                      <DomainIcon className="h-5 w-5 flex-shrink-0" />
+                                                                      {!isCollapsed && (
+                                                                          <div className="flex-1 min-w-0">
+                                                                              <div
+                                                                                  className="text-sm font-semibold leading-snug truncate"
+                                                                                  style={{
+                                                                                      whiteSpace:
+                                                                                          'nowrap',
+                                                                                      overflow:
+                                                                                          'hidden',
+                                                                                      textOverflow:
+                                                                                          'ellipsis',
+                                                                                      minWidth: 0,
+                                                                                  }}
+                                                                              >
+                                                                                  {
+                                                                                      session.title
+                                                                                  }
+                                                                              </div>
+                                                                              <div className="text-xs text-muted-foreground mt-1">
+                                                                                  {formatDate(
+                                                                                      session.lastUsed
+                                                                                  )}
+                                                                              </div>
+                                                                          </div>
+                                                                      )}
+                                                                      <div className="flex gap-1 items-center">
+                                                                          <Button
+                                                                              size="sm"
+                                                                              variant="ghost"
+                                                                              onClick={(
+                                                                                  e
+                                                                              ) => {
+                                                                                  e.preventDefault();
                                                                                   startEditing(
                                                                                       session
-                                                                                  )
-                                                                              }
+                                                                                  );
+                                                                              }}
                                                                               disabled={
                                                                                   updatePlaygroundMutation.isPending ||
                                                                                   deletePlaygroundMutation.isPending
                                                                               }
                                                                               className="h-8 w-8 p-0"
                                                                           >
-                                                                              <Edit2 className="h-3 w-3" />
+                                                                              <Edit2 className="h-4 w-4" />
                                                                           </Button>
                                                                           <Button
                                                                               size="sm"
                                                                               variant="ghost"
-                                                                              onClick={() =>
+                                                                              onClick={(
+                                                                                  e
+                                                                              ) => {
+                                                                                  e.preventDefault();
                                                                                   showDeleteConfirm(
                                                                                       session.id
-                                                                                  )
-                                                                              }
+                                                                                  );
+                                                                              }}
                                                                               disabled={
                                                                                   updatePlaygroundMutation.isPending ||
                                                                                   deletePlaygroundMutation.isPending
@@ -591,15 +678,15 @@ export function PlaygroundSidebar() {
                                                                               {deletePlaygroundMutation.isPending &&
                                                                               playgroundToDelete ===
                                                                                   session.id ? (
-                                                                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                                                                  <Loader2 className="h-4 w-4 animate-spin" />
                                                                               ) : (
-                                                                                  <Trash2 className="h-3 w-3" />
+                                                                                  <Trash2 className="h-4 w-4" />
                                                                               )}
                                                                           </Button>
                                                                       </div>
                                                                   </>
                                                               )}
-                                                          </div>
+                                                          </Link>
                                                       )}
                                                   </SidebarMenuItem>
                                               );
