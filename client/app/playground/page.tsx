@@ -306,9 +306,20 @@ export default function PlaygroundPage() {
                                                 newPlaygroundModel
                                             )
                                         }
+                                        disabled={
+                                            !newPlaygroundModel ||
+                                            createPlaygroundMutation.isPending
+                                        }
                                         className="flex-1"
                                     >
-                                        Create Playground
+                                        {createPlaygroundMutation.isPending ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                Creating...
+                                            </>
+                                        ) : (
+                                            'Create Playground'
+                                        )}
                                     </Button>
                                 </div>
                             </DialogContent>

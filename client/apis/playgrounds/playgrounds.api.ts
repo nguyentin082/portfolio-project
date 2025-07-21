@@ -1,5 +1,5 @@
 import instance from '@/lib/axios';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DomainEnum } from '@/types/enum';
 
 export interface PlaygroundData {
@@ -22,9 +22,25 @@ export interface CreatePlaygroundDto {
     name: string;
 }
 
+export interface UpdatePlaygroundDto {
+    name: string;
+}
+
 export interface CreatePlaygroundResponse {
     success: boolean;
     data: PlaygroundData;
+    error?: string;
+}
+
+export interface UpdatePlaygroundResponse {
+    success: boolean;
+    data: PlaygroundData;
+    error?: string;
+}
+
+export interface DeletePlaygroundResponse {
+    success: boolean;
+    message?: string;
     error?: string;
 }
 
@@ -48,6 +64,23 @@ export async function getPlaygroundById(id: string): Promise<PlaygroundData> {
     return response.data;
 }
 
+// Update playground (rename)
+export async function updatePlayground(
+    id: string,
+    data: UpdatePlaygroundDto
+): Promise<UpdatePlaygroundResponse> {
+    const response = await instance.put(`/playgrounds/${id}`, data);
+    return response.data;
+}
+
+// Delete playground
+export async function deletePlayground(
+    id: string
+): Promise<DeletePlaygroundResponse> {
+    const response = await instance.delete(`/playgrounds/${id}`);
+    return response.data;
+}
+
 // React Query hooks
 export function usePlaygrounds() {
     return useQuery({
@@ -60,11 +93,38 @@ export function usePlaygrounds() {
 }
 
 export function useCreatePlayground() {
+    const queryClient = useQueryClient();
+
     return useMutation({
         mutationFn: createPlayground,
         onSuccess: () => {
-            // Could invalidate and refetch playgrounds here
-            // queryClient.invalidateQueries(['playgrounds']);
+            // Invalidate and refetch playgrounds list
+            queryClient.invalidateQueries({ queryKey: ['playgrounds'] });
+        },
+    });
+}
+
+export function useUpdatePlayground() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: UpdatePlaygroundDto }) =>
+            updatePlayground(id, data),
+        onSuccess: () => {
+            // Invalidate and refetch playgrounds list
+            queryClient.invalidateQueries({ queryKey: ['playgrounds'] });
+        },
+    });
+}
+
+export function useDeletePlayground() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: deletePlayground,
+        onSuccess: () => {
+            // Invalidate and refetch playgrounds list
+            queryClient.invalidateQueries({ queryKey: ['playgrounds'] });
         },
     });
 }

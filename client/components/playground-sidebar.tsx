@@ -12,6 +12,7 @@ import {
     Sun,
     PanelLeft,
     PanelLeftClose,
+    Loader2,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
@@ -49,8 +50,20 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
     usePlaygrounds,
     useCreatePlayground,
+    useUpdatePlayground,
+    useDeletePlayground,
     CreatePlaygroundDto,
 } from '@/apis/playgrounds/playgrounds.api';
 import { useToast } from '@/hooks/use-toast';
@@ -96,6 +109,10 @@ export function PlaygroundSidebar() {
     const [newPlaygroundModel, setNewPlaygroundModel] = useState<
         DomainEnum | ''
     >('');
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [playgroundToDelete, setPlaygroundToDelete] = useState<string | null>(
+        null
+    );
 
     // React Query hooks
     const {
@@ -104,6 +121,8 @@ export function PlaygroundSidebar() {
         refetch: refetchPlaygrounds,
     } = usePlaygrounds();
     const createPlaygroundMutation = useCreatePlayground();
+    const updatePlaygroundMutation = useUpdatePlayground();
+    const deletePlaygroundMutation = useDeletePlayground();
 
     const isCollapsed = state === 'collapsed';
 
@@ -154,14 +173,32 @@ export function PlaygroundSidebar() {
         }
     };
 
-    const deleteSession = async (id: string) => {
+    const showDeleteConfirm = (sessionId: string) => {
+        setPlaygroundToDelete(sessionId);
+        setDeleteConfirmOpen(true);
+    };
+
+    const deleteSession = async () => {
+        if (!playgroundToDelete) return;
+
         try {
-            // TODO: Implement delete API call when backend supports it
-            console.log('Delete playground:', id);
-            // For now, just refetch to update the list
-            refetchPlaygrounds();
-        } catch (error) {
+            await deletePlaygroundMutation.mutateAsync(playgroundToDelete);
+            toast({
+                title: 'Success',
+                description: 'Playground deleted successfully',
+            });
+        } catch (error: any) {
             console.error('Failed to delete playground:', error);
+            toast({
+                title: 'Error',
+                description:
+                    error?.response?.data?.error ||
+                    'Failed to delete playground',
+                variant: 'destructive',
+            });
+        } finally {
+            setDeleteConfirmOpen(false);
+            setPlaygroundToDelete(null);
         }
     };
 
@@ -171,15 +208,35 @@ export function PlaygroundSidebar() {
     };
 
     const saveEdit = async (id: string) => {
+        if (!editTitle.trim()) {
+            toast({
+                title: 'Error',
+                description: 'Playground name cannot be empty',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         try {
-            // TODO: Implement update API call when backend supports it
-            console.log('Update playground:', id, editTitle);
+            await updatePlaygroundMutation.mutateAsync({
+                id,
+                data: { name: editTitle.trim() },
+            });
             setEditingId(null);
             setEditTitle('');
-            // For now, just refetch to update the list
-            refetchPlaygrounds();
-        } catch (error) {
+            toast({
+                title: 'Success',
+                description: 'Playground name updated successfully',
+            });
+        } catch (error: any) {
             console.error('Failed to update playground:', error);
+            toast({
+                title: 'Error',
+                description:
+                    error?.response?.data?.error ||
+                    'Failed to update playground name',
+                variant: 'destructive',
+            });
         }
     };
 
@@ -325,10 +382,20 @@ export function PlaygroundSidebar() {
                                                     newPlaygroundModel as DomainEnum
                                                 )
                                             }
-                                            disabled={!newPlaygroundModel}
+                                            disabled={
+                                                !newPlaygroundModel ||
+                                                createPlaygroundMutation.isPending
+                                            }
                                             className="flex-1"
                                         >
-                                            Create Playground
+                                            {createPlaygroundMutation.isPending ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Creating...
+                                                </>
+                                            ) : (
+                                                'Create Playground'
+                                            )}
                                         </Button>
                                     </div>
                                 </div>
@@ -448,9 +515,16 @@ export function PlaygroundSidebar() {
                                                                                   session.id
                                                                               )
                                                                           }
+                                                                          disabled={
+                                                                              updatePlaygroundMutation.isPending
+                                                                          }
                                                                           className="h-8 w-8 p-0"
                                                                       >
-                                                                          ✓
+                                                                          {updatePlaygroundMutation.isPending ? (
+                                                                              <Loader2 className="h-3 w-3 animate-spin" />
+                                                                          ) : (
+                                                                              '✓'
+                                                                          )}
                                                                       </Button>
                                                                   </div>
                                                               ) : (
@@ -492,6 +566,10 @@ export function PlaygroundSidebar() {
                                                                                       session
                                                                                   )
                                                                               }
+                                                                              disabled={
+                                                                                  updatePlaygroundMutation.isPending ||
+                                                                                  deletePlaygroundMutation.isPending
+                                                                              }
                                                                               className="h-8 w-8 p-0"
                                                                           >
                                                                               <Edit2 className="h-3 w-3" />
@@ -500,13 +578,23 @@ export function PlaygroundSidebar() {
                                                                               size="sm"
                                                                               variant="ghost"
                                                                               onClick={() =>
-                                                                                  deleteSession(
+                                                                                  showDeleteConfirm(
                                                                                       session.id
                                                                                   )
                                                                               }
+                                                                              disabled={
+                                                                                  updatePlaygroundMutation.isPending ||
+                                                                                  deletePlaygroundMutation.isPending
+                                                                              }
                                                                               className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                                                                           >
-                                                                              <Trash2 className="h-3 w-3" />
+                                                                              {deletePlaygroundMutation.isPending &&
+                                                                              playgroundToDelete ===
+                                                                                  session.id ? (
+                                                                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                                                              ) : (
+                                                                                  <Trash2 className="h-3 w-3" />
+                                                                              )}
                                                                           </Button>
                                                                       </div>
                                                                   </>
@@ -589,6 +677,47 @@ export function PlaygroundSidebar() {
                     )}
                 </SidebarFooter>
             </Sidebar>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Playground</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this playground?
+                            This action cannot be undone and will permanently
+                            remove all associated data.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            onClick={() => {
+                                setDeleteConfirmOpen(false);
+                                setPlaygroundToDelete(null);
+                            }}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={deleteSession}
+                            disabled={deletePlaygroundMutation.isPending}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {deletePlaygroundMutation.isPending ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                'Delete'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </TooltipProvider>
     );
 }
