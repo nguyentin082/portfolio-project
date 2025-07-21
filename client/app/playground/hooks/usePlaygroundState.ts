@@ -18,7 +18,9 @@ export const usePlaygroundState = () => {
         data: playgroundsData,
         isLoading: playgroundsLoading,
         refetch: refetchPlaygrounds,
-    } = usePlaygrounds();
+    } = usePlaygrounds({
+        sort: { createdAt: -1 }, // newest first
+    });
 
     const {
         data: imagesData,

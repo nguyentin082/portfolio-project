@@ -45,8 +45,43 @@ export interface DeletePlaygroundResponse {
 }
 
 // Get all playgrounds for current user
-export async function getUserPlaygrounds(): Promise<PlaygroundsResponse> {
-    const response = await instance.get('/playgrounds');
+export async function getUserPlaygrounds(options?: {
+    sort?: string | Record<string, any>;
+    order?: 'asc' | 'desc';
+    where?: object;
+    page?: number;
+    limit?: number;
+}): Promise<PlaygroundsResponse> {
+    const params = new URLSearchParams();
+
+    if (options?.sort) {
+        if (typeof options.sort === 'object') {
+            params.append('sort', JSON.stringify(options.sort));
+        } else {
+            params.append('sort', options.sort);
+        }
+    }
+
+    if (options?.order) {
+        params.append('order', options.order);
+    }
+
+    if (options?.where) {
+        params.append('where', JSON.stringify(options.where));
+    }
+
+    if (options?.page) {
+        params.append('page', options.page.toString());
+    }
+
+    if (options?.limit) {
+        params.append('limit', options.limit.toString());
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `/playgrounds?${queryString}` : '/playgrounds';
+
+    const response = await instance.get(url);
     return response.data;
 }
 
@@ -82,10 +117,16 @@ export async function deletePlayground(
 }
 
 // React Query hooks
-export function usePlaygrounds() {
+export function usePlaygrounds(options?: {
+    sort?: string | Record<string, any>;
+    order?: 'asc' | 'desc';
+    where?: object;
+    page?: number;
+    limit?: number;
+}) {
     return useQuery({
-        queryKey: ['playgrounds'],
-        queryFn: getUserPlaygrounds,
+        queryKey: ['playgrounds', options],
+        queryFn: () => getUserPlaygrounds(options),
         staleTime: 1000 * 60 * 5, // 5 minutes
         retry: 1,
         refetchOnWindowFocus: false,
@@ -98,12 +139,11 @@ export function useCreatePlayground() {
     return useMutation({
         mutationFn: createPlayground,
         onSuccess: () => {
-            // Invalidate and refetch playgrounds list
+            // Invalidate all playgrounds queries regardless of options
             queryClient.invalidateQueries({ queryKey: ['playgrounds'] });
         },
     });
 }
-
 export function useUpdatePlayground() {
     const queryClient = useQueryClient();
 
@@ -111,7 +151,7 @@ export function useUpdatePlayground() {
         mutationFn: ({ id, data }: { id: string; data: UpdatePlaygroundDto }) =>
             updatePlayground(id, data),
         onSuccess: () => {
-            // Invalidate and refetch playgrounds list
+            // Invalidate all playgrounds queries regardless of options
             queryClient.invalidateQueries({ queryKey: ['playgrounds'] });
         },
     });
@@ -123,7 +163,7 @@ export function useDeletePlayground() {
     return useMutation({
         mutationFn: deletePlayground,
         onSuccess: () => {
-            // Invalidate and refetch playgrounds list
+            // Invalidate all playgrounds queries regardless of options
             queryClient.invalidateQueries({ queryKey: ['playgrounds'] });
         },
     });
