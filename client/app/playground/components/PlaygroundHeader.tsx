@@ -4,10 +4,12 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import { RefreshCw, Loader2, Info } from 'lucide-react';
 import { Domain } from '../types';
 
 interface PlaygroundHeaderProps {
+    showGuideButton?: boolean;
+    onShowGuide?: () => void;
     domain?: Domain;
     title?: string;
     description?: string;
@@ -23,6 +25,8 @@ export const PlaygroundHeader: React.FC<PlaygroundHeaderProps> = ({
     showRefresh = false,
     onRefresh,
     isRefreshing = false,
+    showGuideButton = false,
+    onShowGuide,
 }) => {
     return (
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/50 px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,9 +51,19 @@ export const PlaygroundHeader: React.FC<PlaygroundHeaderProps> = ({
                     {domain.category}
                 </Badge>
             )}
+            {showGuideButton && (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={onShowGuide}
+                >
+                    <Info className="w-4 h-4 " />
+                </Button>
+            )}
             {showRefresh && (
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={onRefresh}
                     disabled={isRefreshing}
@@ -60,7 +74,6 @@ export const PlaygroundHeader: React.FC<PlaygroundHeaderProps> = ({
                     ) : (
                         <RefreshCw className="w-4 h-4" />
                     )}
-                    Refresh
                 </Button>
             )}
         </header>

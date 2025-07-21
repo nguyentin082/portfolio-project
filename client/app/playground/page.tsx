@@ -15,7 +15,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Home, Loader2, ImageIcon, X } from 'lucide-react';
+import { Plus, Home, Loader2, ImageIcon, X, Info } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -112,6 +112,7 @@ export default function PlaygroundPage() {
     const [selectedImageModal, setSelectedImageModal] =
         useState<ImageData | null>(null);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [showGuideModal, setShowGuideModal] = useState(false);
 
     const createPlaygroundMutation = useCreatePlayground();
 
@@ -343,6 +344,8 @@ export default function PlaygroundPage() {
                         loadPlaygroundImages(currentSession.id)
                     }
                     isRefreshing={loadingImages || imagesLoading}
+                    showGuideButton={true}
+                    onShowGuide={() => setShowGuideModal(true)}
                 />
 
                 <div className="flex-1 h-[calc(100vh-4rem)] overflow-auto">
@@ -357,27 +360,46 @@ export default function PlaygroundPage() {
                             imagesData={displayedImages}
                         />
 
-                        {/* Upload Instructions */}
-                        <Card className="border-border/50">
-                            <CardHeader>
-                                <CardTitle className="text-lg">
-                                    How to Use Face Recognition
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ol className="space-y-2 text-sm text-muted-foreground">
-                                    <li>1. Upload an image containing faces</li>
-                                    <li>
-                                        2. Wait for automatic face detection
-                                    </li>
-                                    <li>3. Tag detected faces with names</li>
-                                    <li>
-                                        4. View recognition results and manage
-                                        your database
-                                    </li>
-                                </ol>
-                            </CardContent>
-                        </Card>
+                        {/* Guide Modal rendered at top level */}
+                        {showGuideModal && (
+                            <Dialog
+                                open={showGuideModal}
+                                onOpenChange={setShowGuideModal}
+                            >
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <div className="flex items-center gap-2">
+                                            <Info className="w-5 h-5 text-blue-500" />
+                                            <DialogTitle>
+                                                How to Use Face Recognition
+                                            </DialogTitle>
+                                        </div>
+                                    </DialogHeader>
+                                    <Card className="border-none shadow-none">
+                                        <CardContent>
+                                            <ol className="space-y-2 text-sm text-muted-foreground">
+                                                <li>
+                                                    1. Upload an image
+                                                    containing faces.
+                                                </li>
+                                                <li>
+                                                    2. Wait for automatic face
+                                                    detection.
+                                                </li>
+                                                <li>
+                                                    3. Tag detected faces with
+                                                    names.
+                                                </li>
+                                                <li>
+                                                    4. View recognition results
+                                                    and manage your database.
+                                                </li>
+                                            </ol>
+                                        </CardContent>
+                                    </Card>
+                                </DialogContent>
+                            </Dialog>
+                        )}
 
                         {/* Loading State */}
                         {(loadingImages || imagesLoading) && (
