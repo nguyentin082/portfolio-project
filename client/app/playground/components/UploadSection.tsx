@@ -26,6 +26,7 @@ interface UploadSectionProps {
     uploadProgress: { [key: string]: number };
     loadingImages: boolean;
     imagesLoading: boolean;
+    imagesData?: any[];
 }
 
 export const UploadSection: React.FC<UploadSectionProps> = ({
@@ -34,92 +35,110 @@ export const UploadSection: React.FC<UploadSectionProps> = ({
     uploadProgress,
     loadingImages,
     imagesLoading,
+    imagesData = [],
 }) => {
+    // Calculate stats
+    const imagesProcessed = imagesData.length;
+    const facesDetected = imagesData.reduce(
+        (acc, img) => acc + (img.faces?.length || 0),
+        0
+    );
+    const facesTagged = imagesData.reduce(
+        (acc, img) =>
+            acc +
+            (img.faces?.filter(
+                (f: any) => f.personId && f.personId !== 'unknown'
+            ).length || 0),
+        0
+    );
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Upload Stats */}
-            <Card className="border-border/50">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                        <Upload className="w-4 h-4" />
-                        Upload Images
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">0</div>
-                        <p className="text-xs text-muted-foreground">
-                            Images Processed
-                        </p>
-                    </div>
-                    <div className="relative">
-                        <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={onImageUpload}
-                            disabled={!currentSession}
-                            className="cursor-pointer"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <span className="text-sm text-muted-foreground">
-                                Choose image file
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Upload Stats */}
+                <Card className="border border-border/50 hover:shadow-lg transition-shadow duration-200">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Upload className="w-5 h-5 text-green-500" />
+                            <span className="text-green-600">
+                                Upload Images
                             </span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-green-600">
+                                {imagesProcessed}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Images Processed
+                            </p>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
 
-            {/* Face Detection Stats */}
-            <Card className="border-border/50">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                        <Eye className="w-4 h-4" />
-                        Face Detection
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                            0
+                {/* Face Detection Stats */}
+                <Card className="border border-border/50 hover:shadow-lg transition-shadow duration-200">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Eye className="w-5 h-5 text-blue-500" />
+                            <span className="text-blue-600">
+                                Face Detection
+                            </span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-blue-600">
+                                {facesDetected}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Faces Detected
+                            </p>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                            Faces Detected
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-xs text-muted-foreground">
-                            Ready for detection
+                        {/* ...existing code... */}
+                    </CardContent>
+                </Card>
+
+                {/* Recognition Stats */}
+                <Card className="border border-border/50 hover:shadow-lg transition-shadow duration-200">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <User className="w-5 h-5 text-yellow-500" />
+                            <span className="text-yellow-600">
+                                Face Recognition
+                            </span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-yellow-600">
+                                {facesTagged}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Faces Tagged
+                            </p>
+                        </div>
+                        {/* ...existing code... */}
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="mt-6 flex justify-center">
+                <label className="block relative cursor-pointer w-full max-w-md">
+                    <div className="flex items-center justify-center h-12 rounded-md border border-green-500 bg-green-50 dark:bg-green-900 hover:bg-green-100 dark:hover:bg-green-800 transition-colors gap-2">
+                        <Upload className="w-5 h-5 text-green-500" />
+                        <span className="text-base font-medium text-green-700 dark:text-green-300">
+                            Choose image file to upload
                         </span>
                     </div>
-                </CardContent>
-            </Card>
-
-            {/* Recognition Stats */}
-            <Card className="border-border/50">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                        <User className="w-4 h-4" />
-                        Face Recognition
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                            0
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Faces Tagged
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-yellow-600" />
-                        <span className="text-xs text-muted-foreground">
-                            Upload images to start
-                        </span>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={onImageUpload}
+                        disabled={!currentSession}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                </label>
+            </div>
+        </>
     );
 };

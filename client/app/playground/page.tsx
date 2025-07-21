@@ -354,6 +354,7 @@ export default function PlaygroundPage() {
                             uploadProgress={uploadProgress}
                             loadingImages={loadingImages}
                             imagesLoading={imagesLoading}
+                            imagesData={displayedImages}
                         />
 
                         {/* Upload Instructions */}
