@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { ImageStatusEnum } from 'src/core/enums/images.enum';
 
 export class FaceDto {
     @ApiProperty({
@@ -108,6 +109,15 @@ export class CreateImagesDto {
     @IsNotEmpty()
     @IsString()
     playgroundId: string;
+
+    @ApiProperty({
+        description: 'Status of the image',
+        enum: ImageStatusEnum,
+        example: ImageStatusEnum.UPLOADED,
+    })
+    @IsNotEmpty()
+    @IsEnum(ImageStatusEnum)
+    status: ImageStatusEnum;
 
     @ApiProperty({
         description: 'Faces detected in the image',

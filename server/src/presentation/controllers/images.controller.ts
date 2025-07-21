@@ -121,6 +121,7 @@ export class ImagesController {
     //   "userId": "123",
     //   "fileKey": "testfilekey",
     //   "playgroundId": "testid",
+    //   "status": "uploaded",
     //   "faces": [
     //     {
     //       "milvusId": "123",

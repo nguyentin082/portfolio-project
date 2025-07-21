@@ -16,6 +16,7 @@ export class ImagesMapper {
         images.userId = doc.userId;
         images.fileKey = doc.fileKey;
         images.playgroundId = doc.playgroundId;
+        images.status = doc.status;
 
         // Convert faces from MongoDB format to FacesItem[]
         images.faces = doc.faces
@@ -39,6 +40,7 @@ export class ImagesMapper {
             userId: Images.userId,
             fileKey: Images.fileKey,
             playgroundId: Images.playgroundId,
+            status: Images.status,
             faces: Images.faces || [],
         };
     }

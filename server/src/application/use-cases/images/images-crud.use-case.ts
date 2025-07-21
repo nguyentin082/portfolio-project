@@ -158,6 +158,7 @@ export class ImagesCrudUseCase extends CrudUseCase {
                     userId: updatedImage.userId,
                     fileKey: updatedImage.fileKey,
                     playgroundId: updatedImage.playgroundId,
+                    status: updatedImage.status,
                     faces: updatedImage.faces,
                     createdAt: updatedImage.createdAt,
                     updatedAt: updatedImage.updatedAt,

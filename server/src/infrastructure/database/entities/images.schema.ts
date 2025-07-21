@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { BaseSchema } from './base.schema';
 import { HydratedDocument } from 'mongoose';
 import { FacesItem } from 'src/core/entities/images.entity';
+import { ImageStatusEnum } from 'src/core/enums/images.enum';
 
 // Define the face schema inline
 const FaceSchema = {
@@ -23,6 +24,9 @@ export class Images extends BaseSchema {
 
     @Prop({ required: true })
     playgroundId: string;
+
+    @Prop({ required: true, default: ImageStatusEnum.UPLOADED }) // Default status can be set as needed
+    status: ImageStatusEnum;
 
     @Prop({ type: [FaceSchema], default: [] })
     faces: FacesItem[];
